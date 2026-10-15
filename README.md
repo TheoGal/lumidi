@@ -72,7 +72,7 @@ A given image, settings and seed always produce exactly the same result.
 
 Lumidi is a static site with no build step or dependencies. Serve the folder from any web server.
 
-To deploy, copy the folder to any static host or web server. The only external request is to Google Fonts; without it, the page falls back to system fonts.
+To deploy, [Download the latest release](https://github.com/TheoGal/lumidi/releases/latest), unzip it and place the `lumidi` folder on any static host or web server. The only external request is to Google Fonts; without it, the page falls back to system fonts.
 
 ## Differences from Lumena
 

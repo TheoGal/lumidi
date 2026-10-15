@@ -142,8 +142,8 @@ function updateVisibility(){
     if (show && row.dataset.rhythm) show = row.dataset.rhythm === rhythm;
     row.hidden = !show;
   });
-  // Arp/Chords loops fill their bars exactly, so Length has no effect there.
-  $("lengthRow").hidden = mode !== "melody" && loopBars !== "0";
+  // A loop fills exactly its bars in every mode, so Length has no effect then.
+  $("lengthRow").hidden = loopBars !== "0";
   $("lengthLabel").textContent = mode === "chords" ? "Length (chords)" : "Length (notes)";
   $("loopValue").textContent = loopBars === "0" ? "one-shot" : `${loopBars} bar${loopBars === "1" ? "" : "s"}`;
   $("generateBtn").textContent = { melody: "Generate melody", chords: "Generate chords", arpeggio: "Generate arpeggio" }[mode];

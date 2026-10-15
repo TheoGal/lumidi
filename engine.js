@@ -1075,7 +1075,7 @@ function enforceVariety(melody, scale, opts, rng){
   for (const [k, v] of counts) if (v > domCount){ domCount = v; dom = k; }
   if (clampUnit(opts.repetition) < 0.8 && domCount > 0.6 * n){
     let seen = 0;
-    for (let i = 0; i < n; i++){
+    for (let i = 0; i < n - 1; i++){             // page change: never move the final cadence note
       if (melody.notes[i].noteNumber !== dom) continue;
       if ((seen++ % 2) === 1){
         const dir = randInt(rng, 2) ? 1 : -1;
@@ -1087,7 +1087,7 @@ function enforceVariety(melody, scale, opts, rng){
   if (wantVariety){
     const distinct = () => new Set(melody.notes.map(x => x.noteNumber)).size;
     for (let g = 0; distinct() < 4 && g < 8; g++){
-      const i = randInt(rng, n);
+      const i = randInt(rng, n - 1);              // never the final note
       reNote(i, melody.degrees[i] + (randInt(rng, 2) ? 2 : -2));
     }
   }
@@ -1123,19 +1123,84 @@ const DEFAULTS = {
   chordSize: 3, loopBars: 0, beatsPerBar: 4, imageRhythmAmount: 0, progression: [],
 };
 
+function generateMelodyOnce(grid, scale, opts, rng){
+  const per = scale.intervals.length, total = per * opts.octaveSpan;
+  const chain = makeChain(theoryMatrix(total, per, THEORY), rng, THEORY);
+  const melody = opts.structure === "freeform"
+    ? generateFreeform(grid, scale, opts, chain, total, rng)
+    : generatePhrased(grid, scale, opts, chain, total, rng);
+  enforceVariety(melody, scale, opts, rng);
+  return melody;
+}
+
+const melodyEnd = (m) => m.notes.reduce((e, n) => Math.max(e, n.startBeats + n.lengthBeats), 0);
+
+// Cut a melody at `loopBeats`: drop notes starting at or past it, clip any that
+// ring over, and stretch the last note to the bar line. With `cadence`, the
+// last note is also retuned to the nearest tonic so the loop still resolves.
+function cropToLoop(melody, scale, opts, loopBeats, cadence){
+  const keep = [];
+  melody.notes.forEach((n, i) => { if (n.startBeats < loopBeats - 1e-9) keep.push(i); });
+  if (!keep.length) keep.push(0);
+  const pick = (arr) => arr && arr.length === melody.notes.length ? keep.map(i => arr[i]) : arr;
+  melody.degrees = pick(melody.degrees);
+  melody.cells = pick(melody.cells);
+  melody.notes = keep.map(i => ({ ...melody.notes[i] }));
+  melody.phraseStarts = (melody.phraseStarts || []).filter(s => s < melody.notes.length);
+  for (const n of melody.notes){
+    if (n.startBeats + n.lengthBeats > loopBeats) n.lengthBeats = loopBeats - n.startBeats;
+  }
+  // Notes sharing the final onset all ring to the bar line.
+  const lastStart = melody.notes[melody.notes.length - 1].startBeats;
+  for (const n of melody.notes) if (n.startBeats === lastStart) n.lengthBeats = loopBeats - n.startBeats;
+  if (cadence && melody.degrees && melody.degrees.length === melody.notes.length){
+    const per = scale.intervals.length, total = per * opts.octaveSpan;
+    const i = melody.notes.length - 1, from = melody.degrees[i];
+    let best = from, bestDist = Infinity;
+    for (let d = 0; d < total; d++){
+      if (scale.intervals[d % per] % 12 !== 0) continue;
+      if (Math.abs(d - from) < bestDist){ bestDist = Math.abs(d - from); best = d; }
+    }
+    melody.degrees[i] = best;
+    melody.notes[i].noteNumber = noteAt(scale, best, opts.octaveSpan);
+  }
+  return melody;
+}
+
+// Page addition (upstream only pads Melody mode to whole bars, so "Loop 2 bars"
+// could still give 50+ bars): make a Melody loop exactly `loopBars` long.
+// Every attempt replays one sub-seed drawn from `rng`, so a seed still always
+// gives the same loop.
+function fitMelodyToLoop(grid, scale, opts, rng){
+  const loopBeats = opts.loopBars * opts.beatsPerBar;
+  const sub = Math.floor(rng() * 4294967296) >>> 0;
+  if (opts.structure === "freeform"){
+    // Shortest freeform note is an eighth, so this many always fills the loop.
+    const m = generateMelodyOnce(grid, scale, { ...opts, length: Math.ceil(loopBeats * 2) + 1 }, mulberry32(sub));
+    return cropToLoop(m, scale, opts, loopBeats, false);
+  }
+  // Phrased: walk the length target down (fewer phrases) and keep the fullest
+  // complete form, cadence included, that fits inside the loop.
+  let m = null, lastLen = 0;
+  for (let len = Math.ceil(loopBeats * 4); len >= 1; len--){
+    m = generateMelodyOnce(grid, scale, { ...opts, length: len }, mulberry32(sub));
+    if (melodyEnd(m) <= loopBeats + 1e-9) return m;
+    // The form only changes once the target drops by a phrase; skip ahead.
+    if (m.notes.length === lastLen && len > 8) len -= 2;
+    lastLen = m.notes.length;
+  }
+  // Even the shortest form (four phrases) is longer than the loop: cut it at
+  // the bar line and land the final note on the tonic.
+  return cropToLoop(m, scale, opts, loopBeats, true);
+}
+
 function generate(grid, scale, options, rng){
   const opts = { ...DEFAULTS, ...options };
   let melody;
   if (opts.mode === "arpeggio") melody = generateArpeggiated(grid, scale, opts, rng);
   else if (opts.mode === "chords") melody = generateChords(grid, scale, opts, rng);
-  else {
-    const per = scale.intervals.length, total = per * opts.octaveSpan;
-    const chain = makeChain(theoryMatrix(total, per, THEORY), rng, THEORY);
-    melody = opts.structure === "freeform"
-      ? generateFreeform(grid, scale, opts, chain, total, rng)
-      : generatePhrased(grid, scale, opts, chain, total, rng);
-    enforceVariety(melody, scale, opts, rng);
-  }
+  else if (opts.loopBars > 0) melody = fitMelodyToLoop(grid, scale, opts, rng);
+  else melody = generateMelodyOnce(grid, scale, opts, rng);
   if (opts.loopBars > 0) padToWholeBars(melody, opts.beatsPerBar, opts.loopBars);
   melody.mode = opts.mode;
   return melody;

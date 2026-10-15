@@ -10,6 +10,8 @@ Lumidi reads an image's colour and light, picks a musical key from it, and write
 
 Everything runs client-side: the image and the MIDI file never leave your machine.
 
+**Live:** https://theogal.github.io/lumidi/
+
 **Disclaimer:** Im into web developing but this app was entirely vibe-coded with Claude
 
 ### Screenshot

@@ -1,0 +1,272 @@
+:root{
+  --void:#15121f;
+  --panel:#1d1930;
+  --panel-raised:#241f3a;
+  --line:#332c4d;
+  --brass:#d7a24e;
+  --brass-dim:#8c723c;
+  --coral:#e8735c;
+  --ink:#f2ede4;
+  --ink-dim:#a79fc0;
+  --ink-faint:#655d80;
+  --ok:#7fbf8f;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, #2a2244 0%, transparent 60%),
+    radial-gradient(ellipse 700px 500px at 110% 10%, #241c3a 0%, transparent 55%),
+    var(--void);
+  color:var(--ink);
+  font-family:'Space Grotesk', sans-serif;
+  min-height:100vh;
+  padding:32px 20px 60px;
+}
+.app{max-width:1180px;margin:0 auto;}
+header{margin-bottom:34px;}
+header .eyebrow{
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--brass);
+  margin-bottom:10px;
+}
+header h1{
+  font-family:'Fraunces', serif;
+  font-weight:600;
+  font-size:44px;
+  line-height:1.05;
+  margin:0 0 10px;
+  letter-spacing:-.01em;
+}
+header h1 em{color:var(--coral); font-style:italic; font-weight:500;}
+header p{
+  color:var(--ink-dim);
+  max-width:560px;
+  font-size:15px;
+  line-height:1.55;
+  margin:0;
+}
+
+.panel-grid{
+  display:grid;
+  grid-template-columns:1fr 1.15fr 1.05fr;
+  gap:18px;
+  align-items:start;
+}
+@media (max-width:980px){ .panel-grid{grid-template-columns:1fr;} }
+
+.panel{
+  background:linear-gradient(180deg, var(--panel-raised), var(--panel));
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:20px;
+  position:relative;
+}
+.panel::before{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:14px;
+  padding:1px;
+  background:linear-gradient(160deg, rgba(215,162,78,.25), transparent 40%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  pointer-events:none;
+}
+.panel h2{
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  margin:0 0 16px;
+  display:flex; align-items:center; gap:8px;
+}
+.panel h2::after{content:""; flex:1; height:1px; background:var(--line);}
+
+/* ---- image panel ---- */
+.dropzone{
+  border:1.5px dashed var(--line);
+  border-radius:10px;
+  aspect-ratio:4/3.1;
+  display:flex; align-items:center; justify-content:center;
+  position:relative;
+  cursor:pointer;
+  overflow:hidden;
+  background:#100e1c;
+  transition:border-color .15s ease;
+}
+.dropzone:hover, .dropzone.drag{border-color:var(--brass);}
+.dropzone canvas{max-width:100%; max-height:100%; display:none;}
+.dropzone-hint{
+  text-align:center;
+  color:var(--ink-faint);
+  font-size:13px;
+  padding:0 20px;
+  line-height:1.6;
+}
+.dropzone-hint .glyph{font-size:26px; display:block; margin-bottom:8px; opacity:.7;}
+.dropzone.has-image .dropzone-hint{display:none;}
+.dropzone.has-image canvas{display:block;}
+.filename{
+  margin-top:10px; font-size:12px; color:var(--ink-faint);
+  font-family:'Space Mono',monospace;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* ---- controls panel ---- */
+.control-row{margin-bottom:16px;}
+.control-row:last-of-type{margin-bottom:20px;}
+.control-row label{
+  display:block; font-size:12.5px; color:var(--ink-dim); margin-bottom:7px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.control-row label .val{
+  font-family:'Space Mono',monospace; color:var(--brass); font-size:11.5px;
+}
+
+.seed-row{display:flex; gap:8px;}
+input[type=text].seed-input{
+  flex:1;
+  background:#100e1c; border:1px solid var(--line); color:var(--ink);
+  border-radius:8px; padding:9px 10px; font-family:'Space Mono',monospace;
+  font-size:13px;
+}
+input[type=text].seed-input:focus{outline:none; border-color:var(--brass);}
+.dice-btn{
+  width:38px; border-radius:8px; border:1px solid var(--line);
+  background:#100e1c; color:var(--brass); cursor:pointer; font-size:16px;
+  transition:transform .12s ease, border-color .12s ease;
+}
+.dice-btn:hover{border-color:var(--brass); transform:rotate(-8deg);}
+.dice-btn:active{transform:rotate(-18deg) scale(.92);}
+
+input[type=range]{
+  -webkit-appearance:none; width:100%; height:4px; border-radius:2px;
+  background:var(--line); outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:15px; height:15px; border-radius:50%;
+  background:var(--brass); cursor:pointer; border:2px solid #100e1c;
+  box-shadow:0 0 0 1px var(--brass);
+}
+input[type=range]::-moz-range-thumb{
+  width:15px; height:15px; border-radius:50%; background:var(--brass);
+  cursor:pointer; border:2px solid #100e1c;
+}
+
+.seg{
+  display:flex; background:#100e1c; border:1px solid var(--line);
+  border-radius:8px; padding:3px; gap:3px;
+}
+.seg button{
+  flex:1; background:transparent; border:none; color:var(--ink-faint);
+  font-family:'Space Grotesk',sans-serif; font-size:12.5px; padding:7px 6px;
+  border-radius:6px; cursor:pointer; transition:background .12s ease, color .12s ease;
+}
+.seg button.active{background:var(--brass-dim); color:var(--ink); }
+.seg button:hover:not(.active){color:var(--ink-dim);}
+
+.btn-primary{
+  width:100%; padding:13px; border-radius:9px; border:none;
+  background:var(--brass); color:#1a1508; font-weight:600; font-size:14px;
+  cursor:pointer; font-family:'Space Grotesk',sans-serif;
+  transition:filter .12s ease, transform .1s ease;
+}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-primary:active{transform:translateY(1px);}
+.btn-primary:disabled{opacity:.45; cursor:not-allowed;}
+
+/* ---- output panel ---- */
+#keyInfo{
+  font-size:13px; color:var(--ink-dim); min-height:38px; line-height:1.5;
+  margin-bottom:14px;
+}
+#keyInfo .keyname{color:var(--coral); font-family:'Fraunces',serif; font-style:italic; font-size:16px;}
+#rollCanvas{
+  width:100%; height:120px; display:block; border-radius:8px;
+  background:#100e1c; border:1px solid var(--line); margin-bottom:16px;
+}
+.transport{display:flex; gap:8px; margin-bottom:12px;}
+.transport button{
+  flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);
+  background:#100e1c; color:var(--ink); cursor:pointer; font-size:13px;
+  font-family:'Space Grotesk',sans-serif;
+  transition:border-color .12s ease;
+}
+.transport button:hover:not(:disabled){border-color:var(--brass);}
+.transport button:disabled{opacity:.35; cursor:not-allowed;}
+.btn-accent{
+  width:100%; padding:12px; border-radius:9px; border:1px solid var(--coral);
+  background:transparent; color:var(--coral); font-weight:600; font-size:14px;
+  cursor:pointer; font-family:'Space Grotesk',sans-serif; margin-bottom:14px;
+  transition:background .12s ease, color .12s ease;
+}
+.btn-accent:hover:not(:disabled){background:var(--coral); color:#1a1006;}
+.btn-accent:disabled{opacity:.35; cursor:not-allowed; border-color:var(--line); color:var(--ink-faint);}
+
+#statusLog{
+  font-family:'Space Mono',monospace; font-size:11px; color:var(--ink-faint);
+  max-height:90px; overflow-y:auto; border-top:1px solid var(--line); padding-top:10px;
+  line-height:1.7;
+}
+#statusLog div:last-child{color:var(--ink-dim);}
+
+footer{margin-top:26px; font-size:11.5px; color:var(--ink-faint); text-align:center;}
+
+/* ---- added for Lumidi ---- */
+.control-row[hidden]{display:none;}
+.control-row-key{margin-top:18px; margin-bottom:0;}
+.seg-pair{display:grid; grid-template-columns:1.4fr 1fr; gap:8px;}
+.select{
+  width:100%; appearance:none; -webkit-appearance:none;
+  background:#100e1c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23d7a24e' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 12px center;
+  border:1px solid var(--line); color:var(--ink); border-radius:8px;
+  padding:9px 32px 9px 10px; font-family:'Space Grotesk',sans-serif; font-size:13px; cursor:pointer;
+}
+.select:focus{outline:none; border-color:var(--brass);}
+.subhead{
+  font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-faint); margin:4px 0 9px;
+}
+.lock-row{display:flex; gap:8px; margin-bottom:10px;}
+.chip{flex:1; cursor:pointer; position:relative;}
+.chip input{position:absolute; opacity:0; pointer-events:none;}
+.chip span{
+  display:block; text-align:center; padding:8px 6px; border-radius:8px;
+  border:1px solid var(--line); background:#100e1c; color:var(--ink-faint);
+  font-size:12.5px; transition:border-color .12s ease, color .12s ease, background .12s ease;
+}
+.chip span::before{content:"\25CB  ";}
+.chip input:checked + span{border-color:var(--brass); color:var(--ink); background:rgba(215,162,78,.12);}
+.chip input:checked + span::before{content:"\25CF  "; color:var(--brass);}
+.chip input:focus-visible + span{outline:2px solid var(--brass); outline-offset:2px;}
+.vary-row{display:flex; gap:8px; margin-bottom:12px;}
+.btn-ghost{
+  flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);
+  background:#100e1c; color:var(--ink); cursor:pointer; font-size:13px;
+  font-family:'Space Grotesk',sans-serif; transition:border-color .12s ease;
+}
+.btn-ghost:hover:not(:disabled){border-color:var(--brass);}
+.btn-ghost:disabled{opacity:.35; cursor:not-allowed;}
+#keyInfo .prog{font-family:'Space Mono',monospace; color:var(--brass); font-size:12px;}
+footer{line-height:1.7;}
+footer a{color:var(--ink-dim); text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px;}
+footer a:hover{color:var(--brass);}
+
+/* ---- status log scrollbar ---- */
+/* Chrome, Edge, Safari: a slim rounded brass thumb on an invisible track. */
+#statusLog{padding-right:6px;}
+#statusLog::-webkit-scrollbar{width:6px;}
+#statusLog::-webkit-scrollbar-track{background:transparent;}
+#statusLog::-webkit-scrollbar-thumb{
+  background:var(--brass-dim); border-radius:3px;
+}
+#statusLog::-webkit-scrollbar-thumb:hover{background:var(--brass);}
+/* Firefox: no pseudo-elements, so use the standard properties. They're scoped
+   to Firefox because Chrome drops its ::-webkit styling once these are set. */
+@supports (-moz-appearance:none){
+  #statusLog{scrollbar-width:thin; scrollbar-color:var(--brass-dim) transparent;}
+}

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lumidi - image to MIDI</title>
+<meta name="description" content="Lumidi turns a photo into music: it reads an image's color and light to pick a key, then writes a melody, chord progression or arpeggio you can preview and download as MIDI.">
+<meta name="theme-color" content="#15121f">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="icons/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Space+Grotesk:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="eyebrow">Lumidi · image to MIDI</div>
+    <h1>Turn a photo into <em>music</em>.</h1>
+    <p>Drop in an image - Lumidi reads its color and light to pick a key, then writes a melody, a chord progression or an arpeggio guided by its brightness. Preview it with a sine synth, then take the MIDI file with you.</p>
+  </header>
+
+  <main class="panel-grid">
+    <section class="panel panel-image">
+      <h2>Image</h2>
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="image/*" hidden>
+        <canvas id="previewCanvas"></canvas>
+        <div class="dropzone-hint"><span class="glyph">◐</span>Click or drop an image<br>PNG, JPEG, or similar</div>
+      </div>
+      <div class="filename" id="filename"></div>
+
+      <div class="control-row control-row-key">
+        <label>Key</label>
+        <div class="seg" data-group="keyMode">
+          <button class="active" data-value="image">From image</button>
+          <button data-value="random">Random</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel-controls">
+      <h2>Instrument</h2>
+
+      <div class="control-row">
+        <label>Mode</label>
+        <div class="seg" data-group="mode">
+          <button class="active" data-value="melody">Melody</button>
+          <button data-value="chords">Chords</button>
+          <button data-value="arpeggio">Arpeggio</button>
+        </div>
+      </div>
+
+      <div class="control-row">
+        <label>Seed</label>
+        <div class="seed-row">
+          <input type="text" class="seed-input" id="seedInput" value="20260707" inputmode="numeric" aria-label="Seed">
+          <button class="dice-btn" id="randomizeSeedBtn" title="Randomize seed" aria-label="Randomize seed">&#9860;</button>
+        </div>
+      </div>
+
+      <div class="control-row">
+        <label for="tempoRange">Tempo <span class="val" id="tempoValue">120 BPM</span></label>
+        <input type="range" id="tempoRange" min="40" max="200" value="120">
+      </div>
+
+      <div class="control-row" data-modes="melody">
+        <label>Structure</label>
+        <div class="seg" data-group="structure">
+          <button class="active" data-value="phrased">Phrased</button>
+          <button data-value="freeform">Freeform</button>
+        </div>
+      </div>
+
+      <div class="control-row" data-modes="melody">
+        <label>Rhythm</label>
+        <div class="seg" data-group="rhythm">
+          <button class="active" data-value="flowing">Flowing</button>
+          <button data-value="straight">Straight</button>
+        </div>
+      </div>
+
+      <div class="control-row">
+        <label>Cell path</label>
+        <div class="seg" data-group="cellPath">
+          <button class="active" data-value="walk">Random walk</button>
+          <button data-value="random">Pure random</button>
+        </div>
+      </div>
+
+      <div class="control-row" data-modes="arpeggio">
+        <label for="arpPattern">Pattern</label>
+        <select class="select" id="arpPattern">
+          <option value="updown" selected>Up-down</option>
+          <option value="up">Up</option>
+          <option value="down">Down</option>
+          <option value="converge">Converge</option>
+          <option value="random">Random</option>
+        </select>
+      </div>
+
+      <div class="control-row" data-modes="arpeggio">
+        <label>Octaves &amp; rate</label>
+        <div class="seg-pair">
+          <div class="seg" data-group="arpOctaves">
+            <button data-value="1">1</button>
+            <button class="active" data-value="2">2</button>
+            <button data-value="3">3</button>
+          </div>
+          <div class="seg" data-group="arpRate">
+            <button class="active" data-value="0.5">1/8</button>
+            <button data-value="0.25">1/16</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-row" data-modes="chords">
+        <label>Chord size</label>
+        <div class="seg" data-group="chordSize">
+          <button class="active" data-value="3">Triads</button>
+          <button data-value="4">Sevenths</button>
+        </div>
+      </div>
+
+      <div class="control-row">
+        <label>Loop <span class="val" id="loopValue">one-shot</span></label>
+        <div class="seg" data-group="loopBars">
+          <button class="active" data-value="0">Off</button>
+          <button data-value="1">1</button>
+          <button data-value="2">2</button>
+          <button data-value="4">4</button>
+          <button data-value="8">8</button>
+        </div>
+      </div>
+
+      <div class="control-row" id="lengthRow">
+        <label for="lengthRange"><span id="lengthLabel">Length</span> <span class="val" id="lengthValue">auto</span></label>
+        <input type="range" id="lengthRange" min="0" max="128" value="0">
+      </div>
+
+      <div class="control-row">
+        <label for="energyRange">Energy <span class="val" id="energyValue">0.50</span></label>
+        <input type="range" id="energyRange" min="0" max="100" value="50">
+      </div>
+
+      <div class="control-row" data-modes="melody">
+        <label for="influenceRange">Image influence <span class="val" id="influenceValue">0.25</span></label>
+        <input type="range" id="influenceRange" min="0" max="100" value="25">
+      </div>
+
+      <div class="control-row" data-modes="melody">
+        <label for="complexityRange">Complexity <span class="val" id="complexityValue">0.15</span></label>
+        <input type="range" id="complexityRange" min="0" max="100" value="15">
+      </div>
+
+      <div class="control-row" data-modes="melody" data-structure="phrased">
+        <label for="repetitionRange">Repetition <span class="val" id="repetitionValue">0.20</span></label>
+        <input type="range" id="repetitionRange" min="0" max="100" value="20">
+      </div>
+
+      <div class="control-row" data-modes="melody" data-structure="phrased" data-rhythm="flowing">
+        <label for="densityRange">Image rhythm <span class="val" id="densityValue">off</span></label>
+        <input type="range" id="densityRange" min="0" max="100" value="0">
+      </div>
+
+      <button class="btn-primary" id="generateBtn" disabled>Generate melody</button>
+    </section>
+
+    <section class="panel panel-output">
+      <h2>Signature</h2>
+      <div id="keyInfo">Load an image to detect its key.</div>
+      <canvas id="rollCanvas" aria-label="Piano-roll view of the generated notes"></canvas>
+      <div class="transport">
+        <button id="playBtn" disabled>&#9654; Play preview</button>
+        <button id="stopBtn" disabled>&#9632; Stop</button>
+      </div>
+
+      <div class="subhead">Lock &amp; vary</div>
+      <div class="lock-row" role="group" aria-label="Keep from the current result">
+        <label class="chip"><input type="checkbox" id="lockRhythm"><span>Rhythm</span></label>
+        <label class="chip"><input type="checkbox" id="lockPitch"><span>Pitch</span></label>
+        <label class="chip"><input type="checkbox" id="lockHarmony"><span>Harmony</span></label>
+      </div>
+      <div class="vary-row">
+        <button class="btn-ghost" id="rerollBtn" disabled title="New seed, keeping whatever is locked">&#9860; Re-roll</button>
+        <button class="btn-ghost" id="mutateBtn" disabled title="Nudge some notes of the current result">&#8776; Mutate</button>
+      </div>
+      <div class="control-row">
+        <label for="mutateRange">Mutate amount <span class="val" id="mutateValue">0.30</span></label>
+        <input type="range" id="mutateRange" min="5" max="100" value="30">
+      </div>
+
+      <button class="btn-accent" id="downloadBtn" disabled>&#8659; Download MIDI</button>
+      <div id="statusLog"><div>Waiting for an image…</div></div>
+    </section>
+  </main>
+
+  <footer>Runs entirely in your browser - the image and the MIDI file never leave your machine.<br>
+    Engine ported from <a href="https://github.com/pixelsncodes/lumena" target="_blank" rel="noopener">Lumena</a> by Kazi Ahmed (MIT).</footer>
+</div>
+
+<script src="engine.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>

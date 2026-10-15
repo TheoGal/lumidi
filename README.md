@@ -55,7 +55,7 @@ A given image, settings and seed always produce exactly the same result.
 | Tempo | 40-200 BPM, used for the preview and written into the MIDI file |
 | Rhythm | *Flowing* lets brightness shape note lengths; *Straight* uses steady quarter notes |
 | Cell path | *Random walk* moves to a neighbouring cell each step; *Pure random* jumps anywhere |
-| Loop | 1, 2, 4 or 8 bars: the result fills whole bars and loops seamlessly |
+| Loop | 1, 2, 4 or 8 bars: the result is exactly that long and loops seamlessly (Length is ignored while a loop is on) |
 | Length | Target note or chord count (*auto* is one per grid cell) |
 | Energy | Overall loudness, how much space between phrases, and chords per bar |
 | Image influence | How strongly brightness steers the pitch, compared with smooth stepwise motion |
